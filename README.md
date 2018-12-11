@@ -130,3 +130,55 @@ Then please open this URL with your browser: http://localhost:6901/?password=vnc
 You'll see the virtual desktop and the Minecraft window in it.
 
 ![](images/minecraft.png)
+
+## Start hands-on
+### 0. Activate conda
+
+```
+$ conda info -e
+# conda environments:
+#
+base                     /anaconda
+marlo                 *  /anaconda/envs/marlo
+py35                     /anaconda/envs/py35
+py36                     /anaconda/envs/py36
+```
+
+If you do not acitivate `marlo` in your environment, please run following command.
+
+```
+$ conda activate marlo
+```
+
+### 1. ClonClone this repo
+
+```
+$ git clone https://github.com/keisuke-umezawa/marlo-handson.git
+$ cd marlo-handson
+```
+
+### 2. Run simple malro example
+
+```
+$ python test_malmo.py
+```
+
+### 3. Run example with chainerrl
+
+```
+$ wget https://github.com/mitmul/marlo-handson/releases/download/v0.1/88626_except.tar.gz
+$ tar xvzf 88626_except.tar.gz
+$ python train_DQN.py --demo --load 88626_except --monitor
+```
+
+```
+$ python make_video.py
+$ ls video.mp4 
+video.mp4
+```
+
+### 4. Train your models
+
+```
+$ python train_DQN.py --load 88626_except
+```
