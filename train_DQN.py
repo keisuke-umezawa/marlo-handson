@@ -28,6 +28,21 @@ from chainerrl.wrappers import atari_wrappers
 import marlo
 from marlo import experiments
 
+from PIL import Image
+
+
+class Monitor(gym.Wrapper):
+    def __init__(self, env, directory):
+        super(Monitor, self).__init__(env)
+        self._directory = directory
+        self._count = 0
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        Image.fromarray(obs).save('{}/{}.png'.format(self._directory, str(self._count).zfill(10)))
+        self._count += 1
+        return obs, reward, done, info
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -41,6 +56,7 @@ def main():
     parser.add_argument('--gpu', type=int, default=0,
                         help='GPU to use, set to -1 if no GPU.')
     parser.add_argument('--demo', action='store_true', default=False)
+    parser.add_argument('--monitor', action='store_true', default=False)
     parser.add_argument('--load', type=str, default=None)
     parser.add_argument('--final-exploration-frames',
                         type=int, default=10 ** 5,
@@ -69,7 +85,7 @@ def main():
                         help='Frequency (in timesteps) of evaluation phase.')
     parser.add_argument('--update-interval', type=int, default=4,
                         help='Frequency (in timesteps) of network updates.')
-    parser.add_argument('--eval-n-runs', type=int, default=100)
+    parser.add_argument('--eval-n-runs', type=int, default=10)
     parser.add_argument('--logging-level', type=int, default=20,
                         help='Logging level. 10:DEBUG, 20:INFO etc.')
     parser.add_argument('--render', action='store_true', default=False,
@@ -103,6 +119,10 @@ def main():
         obs = env.reset()
         if render:
             env.render(mode="rgb_array")
+
+        if args.monitor:
+            env = Monitor(env, args.out_dir)
+
         action = env.action_space.sample()
         obs, r, done, info = env.step(action)
         env.seed(int(env_seed))
