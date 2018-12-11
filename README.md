@@ -77,15 +77,10 @@ Please do not care some slight differences. All you need is the `publicIpAddress
 ### 5. SSH to the VM
 
 ```
-$ ssh ${USER}.eastus.cloudapp.azure.com
-```
-
-or
-
-```
 $ ssh [IP OF THE VM]
 ```
-If you choose the latter way, please replace `[IP OF THE VM]` with your IP address you can find in the result of the previous step.
+
+Please replace `[IP OF THE VM]` with your IP address you can find in the result of the previous step.
 
 ### 6. Create a Conda environment for MarLo
 
@@ -99,13 +94,13 @@ $ curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - 
 ```
 
 ```
-$ conda create python=3.6 --name marlo \
-&& conda config --set always_yes yes \
+$ conda config --set always_yes yes \
+&& conda create python=3.6 --name marlo \
 && conda config --add channels conda-forge \
 && conda activate marlo \
 && conda install -c crowdai malmo matplotlib ipython numpy scipy opencv \
 && pip install git+https://github.com/crowdAI/marLo.git \
-&& pip install chainer==5.0.0 cupy-cuda92==5.0.0 chainerrl==0.5.0
+&& pip install chainer==5.1.0 cupy-cuda92==5.1.0 chainerrl==0.5.0
 ```
 
 ```
@@ -113,22 +108,25 @@ $ mkdir /anaconda/envs/marlo/Minecraft/run/config \
 && echo 'enabled=false' > /anaconda/envs/marlo/Minecraft/run/config/splash.properties
 ```
 
-### 7. Install X2Go client on your machine
+### 7. Start a Minecraft client
 
-Just follow the instruction here: [Installing the Qt-based X2Go Client](https://wiki.x2go.org/doku.php/doc:installation:x2goclient). Please note that you only needs the "client". You do not have to setup the X2Go server on the VM. It has already been ready to go!
-
-After the installation of X2Go, just launch the client and connect to the VM by following this instruction: [Installing and configuring X2Go client](https://docs.microsoft.com/azure/machine-learning/data-science-virtual-machine/linux-dsvm-intro#installing-and-configuring-x2go-client).
-
-You will see the Ubuntu desktop in the X2Go client window.
-
-### 8. Start a Minecraft client
-
-In the X2Go window, launch a Terminal Emulater from the left top "Applications" menu, and just run the command below to start a Minecraft client!
 ```
-$ source activate marlo \
-&& $MALMO_MINECRAFT_ROOT/launchClient.sh -port 10000
+$ sudo docker run -it \
+-p 5901:5901 \
+-p 6901:6901 \
+-p 8888:8888 \
+-p 10000:10000 \
+-e VNC_PW=vncpassword andkram/malmo 
 ```
 
-Then you can see this screen on the X2Go client window.
+Then re-SSH to the server with port forwarding of 6901 like this:
+
+```
+$ ssh [IP OF THE VM] -L 6901:localhost:6901
+```
+
+Then please open this URL with your browser: http://localhost:6901/?password=vncpassword
+
+You'll see the virtual desktop and the Minecraft window in it.
 
 ![](images/minecraft.png)
