@@ -23,8 +23,6 @@ from chainerrl import links
 from chainerrl import misc
 from chainerrl import replay_buffer
 
-from chainerrl.wrappers import atari_wrappers
-
 import marlo
 from marlo import experiments
 
@@ -32,22 +30,26 @@ from PIL import Image
 
 
 class Monitor(gym.Wrapper):
-    def __init__(self, env, directory):
+    def __init__(self, env):
         super(Monitor, self).__init__(env)
-        self._directory = directory
-        self._count = 0
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        Image.fromarray(obs).save('{}/{}.png'.format(self._directory, str(self._count).zfill(10)))
-        self._count += 1
+        obs = Image.fromarray(obs)
+        obs.thumbnail((84, 84), Image.ANTIALIAS)
+        obs = np.asarray(obs)
         return obs, reward, done, info
+
+    def reset(self, **kwargs):
+        obs = self.env.reset(**kwargs)
+        obs = Image.fromarray(obs)
+        obs.thumbnail((84, 84), Image.ANTIALIAS)
+        obs = np.asarray(obs)
+        return obs
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='BreakoutNoFrameskip-v4',
-                        help='OpenAI Atari domain to perform algorithm on.')
     parser.add_argument('--out_dir', type=str, default='results',
                         help='Directory path to save output files.'
                              ' If it does not exist, it will be created.')
@@ -56,7 +58,6 @@ def main():
     parser.add_argument('--gpu', type=int, default=0,
                         help='GPU to use, set to -1 if no GPU.')
     parser.add_argument('--demo', action='store_true', default=False)
-    parser.add_argument('--monitor', action='store_true', default=False)
     parser.add_argument('--load', type=str, default=None)
     parser.add_argument('--final-exploration-frames',
                         type=int, default=10 ** 5,
@@ -66,9 +67,6 @@ def main():
                         help='Final value of epsilon during training.')
     parser.add_argument('--eval-epsilon', type=float, default=0.05,
                         help='Exploration epsilon used during eval episodes.')
-    parser.add_argument('--arch', type=str, default='doubledqn',
-                        choices=['nature', 'nips', 'dueling', 'doubledqn'],
-                        help='Network architecture to use.')
     parser.add_argument('--steps', type=int, default=10 ** 6,
                         help='Total number of timesteps to train the agent.')
     parser.add_argument('--max-episode-len', type=int,
@@ -88,8 +86,6 @@ def main():
     parser.add_argument('--eval-n-runs', type=int, default=10)
     parser.add_argument('--logging-level', type=int, default=20,
                         help='Logging level. 10:DEBUG, 20:INFO etc.')
-    parser.add_argument('--render', action='store_true', default=False,
-                        help='Render env states in a GUI window.')
     parser.add_argument('--lr', type=float, default=2.5e-4,
                         help='Learning rate.')
     args = parser.parse_args()
@@ -106,29 +102,24 @@ def main():
     experiments.set_log_base_dir(args.out_dir)
     print('Output files are saved in {}'.format(args.out_dir))
 
-    def make_env(render=False, env_seed=0):
+    def make_env(env_seed=0):
         join_tokens = marlo.make(
             "MarLo-FindTheGoal-v0",
             params=dict(
                 allowContinuousMovement=["move", "turn"],
-                videoResolution=[84, 84],
+                videoResolution=[336, 336],
                 kill_clients_after_num_rounds=500
             ))
         env = marlo.init(join_tokens[0])
+        env = Monitor(env)
 
         obs = env.reset()
-        if render:
-            env.render(mode="rgb_array")
-
-        if args.monitor:
-            env = Monitor(env, args.out_dir)
-
         action = env.action_space.sample()
         obs, r, done, info = env.step(action)
         env.seed(int(env_seed))
         return env
 
-    env = make_env(render=args.render, env_seed=args.seed)
+    env = make_env(env_seed=args.seed)
 
     n_actions = env.action_space.n
     q_func = links.Sequence(
@@ -161,7 +152,9 @@ def main():
         return np.asarray(x, dtype=np.float32) / 255
 
     agent = agents.DQN(
-        q_func, opt, rbuf,
+        q_func,
+        opt,
+        rbuf,
         gpu=args.gpu,
         gamma=0.99,
         explorer=explorer,
