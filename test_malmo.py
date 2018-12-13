@@ -24,7 +24,7 @@ env = make_env()
 obs = env.reset()
 
 
-for i in range(10):
+for i in range(100):
     action = env.action_space.sample()
     obs, r, done, info = env.step(action)
     print(r, done, info)
