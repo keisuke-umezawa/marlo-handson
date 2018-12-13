@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import os
 import marlo
+
 
 def make_env(env_seed=0):
     join_tokens = marlo.make(
