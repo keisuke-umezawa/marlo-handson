@@ -123,16 +123,12 @@ def main():
     env = make_env(env_seed=args.seed)
 
     n_actions = env.action_space.n
+    
     q_func = links.Sequence(
         links.NatureDQNHead(n_input_channels=3),
         L.Linear(512, n_actions),
         DiscreteActionValue
     )
-
-    # Draw the computational graph and save it in the output directory.
-    chainerrl.misc.draw_computational_graph(
-        [q_func(np.zeros((3, 84, 84), dtype=np.float32)[None])],
-        os.path.join(args.out_dir, 'model'))
 
     # Use the same hyper parameters as the Nature paper's
     opt = optimizers.RMSpropGraves(
