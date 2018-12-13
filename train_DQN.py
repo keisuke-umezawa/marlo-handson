@@ -48,6 +48,24 @@ class Monitor(gym.Wrapper):
         return obs
 
 
+def make_env(env_seed=0):
+    join_tokens = marlo.make(
+        "MarLo-FindTheGoal-v0",
+        params=dict(
+            allowContinuousMovement=["move", "turn"],
+            videoResolution=[336, 336],
+            kill_clients_after_num_rounds=500
+        ))
+    env = marlo.init(join_tokens[0])
+    env = Monitor(env)
+
+    obs = env.reset()
+    action = env.action_space.sample()
+    obs, r, done, info = env.step(action)
+    env.seed(int(env_seed))
+    return env
+
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--out_dir', type=str, default='results',
@@ -101,23 +119,6 @@ def main():
 
     experiments.set_log_base_dir(args.out_dir)
     print('Output files are saved in {}'.format(args.out_dir))
-
-    def make_env(env_seed=0):
-        join_tokens = marlo.make(
-            "MarLo-FindTheGoal-v0",
-            params=dict(
-                allowContinuousMovement=["move", "turn"],
-                videoResolution=[336, 336],
-                kill_clients_after_num_rounds=500
-            ))
-        env = marlo.init(join_tokens[0])
-        env = Monitor(env)
-
-        obs = env.reset()
-        action = env.action_space.sample()
-        obs, r, done, info = env.step(action)
-        env.seed(int(env_seed))
-        return env
 
     env = make_env(env_seed=args.seed)
 
