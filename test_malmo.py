@@ -7,9 +7,9 @@ def make_env(env_seed=0):
     join_tokens = marlo.make(
         "MarLo-FindTheGoal-v0",
         params=dict(
-            allowContinuousMovement=["move", "turn"],
+            comp_all_commands=["move", "turn"],
+            allowContinuousMovement=True,
             videoResolution=[336, 336],
-            kill_clients_after_num_rounds=500
         ))
     env = marlo.init(join_tokens[0])
 
@@ -23,8 +23,9 @@ def make_env(env_seed=0):
 env = make_env()
 obs = env.reset()
 
+print(env.action_space.n)
 
 for i in range(100):
     action = env.action_space.sample()
     obs, r, done, info = env.step(action)
-    print(r, done, info)
+    print(action, r, done, info)

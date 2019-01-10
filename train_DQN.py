@@ -52,9 +52,12 @@ def make_env(env_seed=0):
     join_tokens = marlo.make(
         "MarLo-FindTheGoal-v0",
         params=dict(
-            allowContinuousMovement=["move", "turn"],
+            comp_all_commands=["move", "turn"],
+            allowContinuousMovement=True,
             videoResolution=[336, 336],
-            kill_clients_after_num_rounds=500
+            kill_clients_retry=10,
+            step_sleep=0.01,
+            kill_clients_after_num_rounds=100,
         ))
     env = marlo.init(join_tokens[0])
     env = Monitor(env)
