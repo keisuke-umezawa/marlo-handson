@@ -184,7 +184,6 @@ def main():
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 
-    experiments.set_log_base_dir(args.out_dir)
     print('Output files are saved in {}'.format(args.out_dir))
 
     env = make_env(args.env, env_seed=args.seed, demo=args.demo)
