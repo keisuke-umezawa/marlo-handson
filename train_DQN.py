@@ -1,3 +1,7 @@
+import marlo
+from marlo import MalmoPython
+from marlo import experiments
+
 import argparse
 import os
 
@@ -18,9 +22,6 @@ from chainerrl import links
 from chainerrl import misc
 from chainerrl.q_functions import DuelingDQN
 from chainerrl import replay_buffer
-
-import marlo
-from marlo import experiments
 
 from PIL import Image
 
